@@ -2,8 +2,8 @@
 # various things.
 
 class TrackGroup:
-    def __init__(self, trackname, tracks, image='', cell="0.1arcsec", \
-            imsize=600, mask='', niter=100, sidelobethreshold=3.0, \
+    def __init__(self, trackname, tracks, image='', cell=None, \
+            imsize=None, mask='', niter=100, sidelobethreshold=3.0, \
             noisethreshold=5.0, minbeamfrac=0.3, lownoisethreshold=1.5):
         self.ms = trackname+'.ms'
         self.contsub = trackname+'.ms.contsub'
@@ -15,8 +15,17 @@ class TrackGroup:
         self.fits = image+".fits"
         self.residual = image+".residual.fits"
 
-        self.cell = cell
-        self.imsize = imsize
+        if cell == None:
+            self.cell = str(min([float(track.cell.split("a")[0]) for track in \
+                    tracks]))+"arcsec"
+        else:
+            self.cell = cell
+
+        if imsize == None:
+            self.imsize = max([track.imsize for track in tracks])
+        else:
+            self.imsize = imsize
+
         self.niter = niter
 
         self.mask = mask

@@ -29,12 +29,9 @@ for filename in data:
 
 # And the info for the combined tracks.
 
-combined = TrackInfo('04287+1801_345GHz', image='04287+1801_345GHz', \
-        cell=str(min([float(track.cell.split("a")[0]) for track in \
-        tracks]))+"arcsec", imsize=max([track.imsize for track in tracks]), \
+combined = TrackInfo('04287+1801_345GHz', tracks, image='04287+1801_345GHz', \
         niter=5000, sidelobethreshold=3.0, noisethreshold=5.0, \
-        lownoisethreshold=1.5, minbeamfrac=0.3, mask='auto-multithresh', \
-        tracks=tracks)
+        lownoisethreshold=1.5, minbeamfrac=0.3, mask='auto-multithresh')
 
 # The list of lines in the dataset.
 
