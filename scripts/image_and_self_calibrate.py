@@ -38,9 +38,9 @@ combined = TrackInfo('04287+1801_345GHz', image='04287+1801_345GHz', \
 
 # The list of lines in the dataset.
 
-line_list = ["13CO3-2","C18O3-2","CN3-2_72-52","CN3-2_52-32", \
+lines = ["13CO3-2","C18O3-2","CN3-2_72-52","CN3-2_52-32", \
         "CN3-2_52-52_7","CN3-2_52-52_3","CS7-6"]
-line_center_list = [330.587965,329.330553,340.247770,340.031549, \
+line_centers = [330.587965,329.330553,340.247770,340.031549, \
         339.516635,339.446777,342.882857]
 
 ################################################################################
@@ -75,8 +75,7 @@ for track in combined.tracks:
 
 # Flag lines in the FDM specral windows.
 
-if line_list != None:
-    flag_lines(combined, line_list, line_center_list, vmin=-20.0, vmax=20.0)
+flag_lines(combined, lines, line_centers, vmin=-20.0, vmax=20.0)
 
 ################################################################################
 #####
@@ -122,7 +121,7 @@ for track in combined.tracks:
 
 # Subtract off the continuum.
 
-sub_continuum(combined, line_list, line_center_list, vmin=-20.0, vmax=20.0)
+sub_continuum(combined, lines, line_centers, vmin=-20.0, vmax=20.0)
 
 # Re-flag the spectral lines.
 
@@ -131,11 +130,11 @@ for track in combined.tracks:
 
 # Loop through the groups and image.
 
-image_lines(combined, line_list, line_center_list, robust=2, start="-20km/s", \
+image_lines(combined, lines, line_centers, robust=2, start="-20km/s", \
         width="0.5km/s", nchan=80, outframe="LSRK", nsigma=3.0, fits=True)
 
 # Export the visibilities.
 
-export_lines(combined, line_list, line_center_list, time=True, timebin="30s", \
+export_lines(combined, lines, line_centers, time=True, timebin="30s", \
         mode="velocity", start="-20km/s", width="0.5km/s", nchan=80, \
         outframe="LSRK", datacolumn="data")
