@@ -1,9 +1,10 @@
+from ..utils import get_line_info
 from casatasks import flagdata
 import casatools
 
 # Flag lines in the FDM specral windows.
 
-def flag_lines(data, line_list, line_center_list, vmin=-20., vmax=20.):
+def flag_lines(data, lines, vmin=-20., vmax=20.):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -12,6 +13,17 @@ def flag_lines(data, line_list, line_center_list, vmin=-20., vmax=20.):
         tracks = data.tracks
     else:
         raise ValueError("Data must be a Track or TrackGroup.")
+
+    # Check whether a list of lines was provided.
+
+    if type(lines) == str:
+        lines = get_line_info([lines])
+    elif type(lines) == list:
+        lines = get_line_info(lines)
+    else:
+        if type(lines) != dict:
+            raise ValueError("Lines must be a string, list of strings, or "
+                    "a dictionary.")
 
     # Create the proper instances of casa tools.
 
@@ -43,10 +55,10 @@ def flag_lines(data, line_list, line_center_list, vmin=-20., vmax=20.):
             # Check which channels fall in the appropriate velocity range 
             # around the line center.
 
-            for iline, line_center in enumerate(line_center_list):
+            for line in lines:
                 # Convert frequencies to velocities.
 
-                velocities = (line_center - freqs/1e9) / line_center * 3e5
+                velocities = (lines[line] - freqs/1e9) / lines[line] * 3e5
 
                 # Find which channels are closest to vmin and vmax.
 
@@ -62,7 +74,7 @@ def flag_lines(data, line_list, line_center_list, vmin=-20., vmax=20.):
                 # Flag the channels that were identified.
 
                 print("Flagging SPW {0:s} because of line {1:s}".\
-                        format(spwstring, line_list[iline]))
+                        format(spwstring, line))
                 flagdata(vis=track.ms, mode="manual", spw=spwstring, \
                         flagbackup=False)
 

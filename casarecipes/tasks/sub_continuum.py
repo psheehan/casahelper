@@ -1,9 +1,10 @@
 # Subtract off the continuum.
 
+from ..utils import get_line_info
 from casatasks import uvcontsub
 import casatools
 
-def sub_continuum(data, line_list, line_center_list, vmin=-20.0, vmax=20.0):
+def sub_continuum(data, lines, vmin=-20.0, vmax=20.0):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -12,6 +13,17 @@ def sub_continuum(data, line_list, line_center_list, vmin=-20.0, vmax=20.0):
         tracks = data.tracks
     else:
         raise ValueError("Data must be a Track or TrackGroup.")
+
+    # Check whether a list of lines was provided.
+
+    if type(lines) == str:
+        lines = get_line_info([lines])
+    elif type(lines) == list:
+        lines = get_line_info(lines)
+    else:
+        if type(lines) != dict:
+            raise ValueError("Lines must be a string, list of strings, or "
+                    "a dictionary.")
 
     # Create instances of the necessary casatools tools.
 
@@ -36,9 +48,9 @@ def sub_continuum(data, line_list, line_center_list, vmin=-20.0, vmax=20.0):
             # Check tho see if any of these frequencies match the lines in the
             # list provided.
             spwstrings = []
-            for iline, line_center in enumerate(line_center_list):
+            for line in lines:
                 # Get the velocities relative to each line.
-                velocities = (line_center - freqs/1e9) / line_center * 3e5
+                velocities = (lines[line] - freqs/1e9) / lines[line] * 3e5
 
                 # Check the range of channels corresponding to vmin and vmax.
                 chanmin = numpy.argmin(numpy.abs(velocities - vmin))

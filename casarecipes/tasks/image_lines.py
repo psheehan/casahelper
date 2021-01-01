@@ -1,10 +1,10 @@
 # Image the spectral line data.
 
 from casatasks import tclean
+from ..utils import get_line_info
 
-def image_lines(data, line_list, line_center_list, combined=None, \
-        robust=[-1,0.5,2], start='-20km/s', width='0.5km/s', nchan=41, \
-        outframe='LSRK', nsigma=3.0, fits=False):
+def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
+        width='0.5km/s', nchan=41, outframe='LSRK', nsigma=3.0, fits=False):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -20,10 +20,14 @@ def image_lines(data, line_list, line_center_list, combined=None, \
 
     # Check whether a list of lines was provided.
 
-    if type(line_list) != list:
-        line_list = [line_list]
-    if type(line_center_list) != list:
-        line_center_list = [line_center_list]
+    if type(lines) == str:
+        lines = get_line_info([lines])
+    elif type(lines) == list:
+        lines = get_line_info(lines)
+    else:
+        if type(lines) != dict:
+            raise ValueError("Lines must be a string, list of strings, or "
+                    "a dictionary.")
 
     # Check to make sure robust is a list.
 
@@ -32,14 +36,14 @@ def image_lines(data, line_list, line_center_list, combined=None, \
 
     # Loop through the lines and robust values and make an image.
 
-    for iline, line_center in enumerate(line_center_list):
+    for line in lines:
         for robust_value in robust:
             tclean(vis=[track.contsub for track in group], spw=[track.spw for \
                     track in group], field=[track.science for track in group], \
-                    imagename=combined.image.replace("345GHz",line_list[iline])\
+                    imagename=combined.image.replace("345GHz",line)\
                     +"_robust{0:3.1f}".format(robust), specmode='cube', \
                     start=start, width=width, nchan=nchan, \
-                    restfreq=str(line_center)+"GHz", outframe=outframe, \
+                    restfreq=str(lines[line])+"GHz", outframe=outframe, \
                     nterms=1, niter=int(10*combined.niter), gain=0.1, \
                     nsigma=nsigma, imsize=combined.imsize, cell=combined.cell, \
                     stokes='I', deconvolver='hogbom', gridder='standard', \
@@ -55,10 +59,9 @@ def image_lines(data, line_list, line_center_list, combined=None, \
 
             if fits:
                 exportfits(imagename=combined.image.replace("345GHz",\
-                        line_list[iline])+"_robust{0:3.1f}.image".\
-                        format(robust), fitsimage=combined.image.\
-                        replace("345GHz",line_list[iline])\
-                        +"_robust{0:3.1f}.fits".format(robust))
+                        line)+"_robust{0:3.1f}.image".format(robust), \
+                        fitsimage=combined.image.replace("345GHz",line)+\
+                        "_robust{0:3.1f}.fits".format(robust))
 
     # Clean up any files we don't want anymore.
 
