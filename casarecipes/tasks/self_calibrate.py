@@ -220,13 +220,8 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
                         k in range(track.nselfcal)], \
                         interp=['linear' for k in range(track.nselfcal)], \
                         calwt=[True for k in range(track.nselfcal)], \
-                        flagbackup=False, spwmap=track.spwmap)
-
-                # Restore flags to the way they were just before self-
-                # calibration.
-
-                flagmanager(vis=track.ms, mode="restore", \
-                        versionname="PostManualFlagging")
+                        flagbackup=False, spwmap=track.spwmap, \
+                        applymode='calonly')
 
                 # Create a set of flags at this state.
 
