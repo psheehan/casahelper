@@ -3,11 +3,15 @@ import casatools
 
 # Flag lines in the FDM specral windows.
 
-def flag_lines(tracks, line_list, line_center_list, vmin=-20., vmax=20.):
-    # Check whether we got a list of tracks.
+def flag_lines(data, line_list, line_center_list, vmin=-20., vmax=20.):
+    # Check whether multiple tracks were provided.
 
-    if type(tracks) != list:
-        tracks = [tracks]
+    if type(data) == Track:
+        tracks = [data]
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # Create the proper instances of casa tools.
 

@@ -2,16 +2,21 @@
 
 from casatasks import tclean
 
-def image_lines(group, line_list, line_center_list, combined=None, \
+def image_lines(data, line_list, line_center_list, combined=None, \
         robust=[-1,0.5,2], start='-20km/s', width='0.5km/s', nchan=41, \
         outframe='LSRK', nsigma=3.0, fits=False):
-    # Check whether a list of tracks was provided.
+    # Check whether multiple tracks were provided.
 
-    if type(group) != list:
-        if combined != None:
-            combined = group
-
-        group = [group]
+    if type(data) == Track:
+        tracks = [data]
+        combine = False
+        combined = data
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+        combine = True
+        combined = data
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # Check whether a list of lines was provided.
 

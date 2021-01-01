@@ -4,7 +4,7 @@ from casatasks import mstransform, concat
 import casatools
 import os
 
-def export_lines(tracks, line_list, line_center_list, combined=None, \
+def export_lines(data, line_list, line_center_list, combined=None, \
         time=True, timebin="30s", mode="velocity", start="-20km/s", \
         width="0.5km/s", nchan=81, outframe="LSRK", \
         datacolumn="corrected"):
@@ -12,6 +12,18 @@ def export_lines(tracks, line_list, line_center_list, combined=None, \
 
     msmd = casatools.msmetadata()
     ms = casatools.ms()
+
+    # Check whether multiple tracks were provided.
+
+    if type(data) == Track:
+        tracks = [data]
+        combine = False
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+        combine = True
+        combined = data
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # Loop through the tracks and export.
 
@@ -60,7 +72,7 @@ def export_lines(tracks, line_list, line_center_list, combined=None, \
 
     # Also concatenate into a single file if requested.
 
-    if combined != None:
+    if combine:
         for iline, line_center in enumerate(line_center_list):
             concat(vis=[track.vis.replace("345GHz",line_list[iline]) for \
                     track in group], concatvis=combined.vis.replace("345GHz",\

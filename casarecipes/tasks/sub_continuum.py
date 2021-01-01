@@ -3,7 +3,16 @@
 from casatasks import uvcontsub
 import casatools
 
-def sub_continuum(tracks, line_list, line_center_list, vmin=-20.0, vmax=20.0):
+def sub_continuum(data, line_list, line_center_list, vmin=-20.0, vmax=20.0):
+    # Check whether multiple tracks were provided.
+
+    if type(data) == Track:
+        tracks = [data]
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
+
     # Create instances of the necessary casatools tools.
 
     msmd = casatools.msmetadata()

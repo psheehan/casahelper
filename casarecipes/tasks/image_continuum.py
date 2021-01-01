@@ -1,14 +1,18 @@
 from casatasks import tclean, exportfits
 
-def image_continuum(group, combined=None, robust=[-1,0.5,2], nsigma=3.0, \
-        fits=False):
-    # Check whether a list of tracks was provided.
+def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False):
+    # Check whether multiple tracks were provided.
 
-    if type(group) != list:
-        if combined != None:
-            combined = group
-
-        group = [group]
+    if type(data) == Track:
+        tracks = [data]
+        combine = False
+        combined = data
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+        combine = True
+        combined = data
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # Check to make sure robust is a list.
 
@@ -18,8 +22,8 @@ def image_continuum(group, combined=None, robust=[-1,0.5,2], nsigma=3.0, \
     # Now loop through the requested robust values and image.
 
     for robust_value in robust:
-        tclean(vis=[track.ms for track in group], spw=[track.spw for track in \
-                group], field=[track.science for track in group], \
+        tclean(vis=[track.ms for track in tracks], spw=[track.spw for track in \
+                tracks], field=[track.science for track in tracks], \
                 imagename=combined.image+"_robust{0:3.1f}".format(robust), \
                 specmode='mfs', nterms=1, niter=combined.niter, gain=0.1, \
                 nsigma=nsigma, imsize=combined.imsize, cell=combined.cell, \

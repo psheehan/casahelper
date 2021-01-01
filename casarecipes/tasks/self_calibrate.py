@@ -6,18 +6,27 @@ import os
 # Create an image of each individual dataset and determine whether to 
 # self-calibrate that track.
 
-def self_calibrate(group, combined, nsigma0=5.0, \
-        solint=['inf','30s','15s','inf','30s'], \
-        minsnr = [5.0,5.0,5.0,5.0,5.0], \
-        gaintype=['T','T','T','T','T'], \
+def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
+        minsnr = [5.0,5.0,5.0,5.0,5.0], gaintype=['T','T','T','T','T'], \
         calmode=['p','p','p','ap','ap'], \
         combine=['all','sideband','sideband','baseband','baseband'], \
-        niter=[5000,5000,5000,5000,5000], \
-        nsigma=[5.,5.,3.,3.,3.]):
+        niter=[5000,5000,5000,5000,5000], nsigma=[5.,5.,3.,3.,3.]):
+
     # Create instances of the needed tools.
 
     msmd = casatools.msmetadata()
     tb = casatools.table()
+
+    # Check whether multiple tracks were provided.
+
+    if type(data) == Track:
+        group = [data]
+        combined = data
+    elif type(data) == TrackGroup:
+        group = data.tracks
+        combined = data
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # First create an image of each track in the group to get the number of 
     # rounds of self calibration to try.

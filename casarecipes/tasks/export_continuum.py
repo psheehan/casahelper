@@ -1,17 +1,25 @@
+from ..utils import Track, TrackGroup
 from casatasks import mstransform, concat
 import casatools
 import os
 
-def export_continuum(tracks, combined=None, chan=True, nchannels=4, \
-        time=True, timebin="30s", datacolumn="corrected"):
+def export_continuum(data, chan=True, nchannels=4, time=True, timebin="30s", \
+        datacolumn="corrected"):
     # Create instances of the needed tools.
 
     msmd = casatools.msmetadata()
 
     # Check whether multiple tracks were provided.
 
-    if type(tracks) != list:
-        tracks = [tracks]
+    if type(data) == Track:
+        tracks = [data]
+        combine = False
+    elif type(data) == TrackGroup:
+        tracks = data.tracks
+        combine = True
+        combined = data
+    else:
+        raise ValueError("Data must be a Track or TrackGroup.")
 
     # Loop through the tracks and average.
 
@@ -31,9 +39,9 @@ def export_continuum(tracks, combined=None, chan=True, nchannels=4, \
 
     # Also concatenate into a single file.
 
-    if combined != None:
+    if combine:
         concat(vis=[track.vis for track in tracks], concatvis=combined.vis)
 
     # Clean up any files we don't want anymore.
 
-    os.system("rm -rf *.last")
+    os.system("rm -rf concat.last mstransform.last")
