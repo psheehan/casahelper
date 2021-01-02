@@ -22,14 +22,14 @@ for filename in data:
     print(image_name)
 
     tracks.append(TrackInfo(image_name, refant=refant(filename), science='0', \
-            spw='', image=image_name, cell='0.03arcsec', imsize=1024, \
+            spw='', name="345GHz", cell='0.03arcsec', imsize=1024, \
             niter=500, sidelobethreshold=3.0, noisethreshold=5.0, \
             minbeamfrac=0.3, lownoisethreshold=1.5, \
             mask='auto-multithresh', selfcal=[], spwmap=[]))
 
 # And the info for the combined tracks.
 
-combined = TrackInfo('04287+1801_345GHz', tracks, image='04287+1801_345GHz', \
+combined = TrackInfo('04287+1801', tracks, name='345GHz', \
         niter=5000, sidelobethreshold=3.0, noisethreshold=5.0, \
         lownoisethreshold=1.5, minbeamfrac=0.3, mask='auto-multithresh')
 
