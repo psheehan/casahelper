@@ -15,7 +15,7 @@ class Track:
         self.spwmap = spwmap
 
         self.name = name
-        self.vis = trackname+"_"+self.name+".ms"
+        self.vis = trackname+"_"+self.name+".vis"
         self.image = trackname+"_"+self.name
         self.fits = self.image+".fits"
         self.residual = self.image+".residual.fits"

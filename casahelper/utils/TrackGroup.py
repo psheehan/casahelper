@@ -11,7 +11,7 @@ class TrackGroup:
         self.tracks = tracks
 
         self.name = name
-        self.vis = trackname+"_"+self.name+".ms"
+        self.vis = trackname+"_"+self.name+".vis"
         self.image = trackname+"_"+name
         self.fits = self.image+".fits"
         self.residual = self.image+".residual.fits"

@@ -1,6 +1,6 @@
 # Subtract off the continuum.
 
-from ..utils import get_line_info
+from ..utils import get_line_info, Track, TrackGroup
 from casatasks import uvcontsub
 import casatools
 

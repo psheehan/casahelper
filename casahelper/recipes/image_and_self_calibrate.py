@@ -1,7 +1,8 @@
-from casarecipes.tasks import reset_ms, flag_lines, self_calibrate, \
+from casahelper.tasks import reset_ms, flag_lines, self_calibrate, \
         image_continuum, export_continuum, sub_continuum, image_lines, \
-        export_lines
-from casarecipes.utils import Track, TrackGroup, refant
+        export_lines, clean_last
+from casahelper.utils import Track, TrackGroup, get_refant
+from casatasks import flagmanager, flagdata
 import glob
 import os
 
@@ -21,15 +22,15 @@ for filename in data:
     image_name = filename.split(".ms")[0]
     print(image_name)
 
-    tracks.append(TrackInfo(image_name, refant=refant(filename), science='0', \
-            spw='', name="345GHz", cell='0.03arcsec', imsize=1024, \
-            niter=500, sidelobethreshold=3.0, noisethreshold=5.0, \
-            minbeamfrac=0.3, lownoisethreshold=1.5, \
-            mask='auto-multithresh', selfcal=[], spwmap=[]))
+    tracks.append(Track(image_name, refant=get_refant(filename), science='0', \
+            spw='', name="345GHz", cell='0.03arcsec', imsize=1024, niter=500, \
+            sidelobethreshold=3.0, noisethreshold=5.0, minbeamfrac=0.3, \
+            lownoisethreshold=1.5, mask='auto-multithresh', selfcal=[], \
+            spwmap=[]))
 
 # And the info for the combined tracks.
 
-combined = TrackInfo('04287+1801', tracks, name='345GHz', \
+combined = TrackGroup('04287+1801', tracks, name='345GHz', \
         niter=5000, sidelobethreshold=3.0, noisethreshold=5.0, \
         lownoisethreshold=1.5, minbeamfrac=0.3, mask='auto-multithresh')
 
@@ -46,10 +47,7 @@ lines = ["13CO3-2","C18O3-2","CN3-2_72-52","CN3-2_52-32","CN3-2_52-52_7",\
 
 # Remove files that were created during the previous run of this script.
 
-for fileext in ["*.selfcal*","*.fits","*.flux*","*.image","*.model","*.psf",\
-        "*.residual","*.vis","*.mask","*.pb","*.pbcor","*.sumwt","*.png",\
-        "*.contsub"]:
-    os.system("rm -r "+fileext)
+clean_last()
 
 # Reset the MS files to their initial state.
 
@@ -100,7 +98,7 @@ image_continuum(combined, robust=[-1,0.5,2], nsigma=3, fits=True)
 
 # Create a .vis file for each of the tracks.
 
-export_continuum(combined, chan=True, nchan=4, time=True, timebin='30s', \
+export_continuum(combined, chan=True, nchannels=4, time=True, timebin='30s', \
         datacolumn="corrected")
 
 ################################################################################

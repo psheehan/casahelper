@@ -6,3 +6,5 @@ from .image_continuum import image_continuum
 from .image_lines import image_lines
 from .self_calibrate import self_calibrate
 from .sub_continuum import sub_continuum
+from .clean_last import clean_last
+from .split_objects import split_objects

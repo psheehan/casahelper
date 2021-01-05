@@ -1,6 +1,8 @@
 from casatasks import tclean, imstat, gaincal, applycal
-from ..utils import plotcal
+from ..utils import plotcal, Track, TrackGroup
+from .image_continuum import image_continuum
 import casatools
+import numpy
 import os
 
 # Create an image of each individual dataset and determine whether to 
@@ -20,10 +22,10 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
-        group = [data]
+        tracks = [data]
         combined = data
     elif type(data) == TrackGroup:
-        group = data.tracks
+        tracks = data.tracks
         combined = data
     else:
         raise ValueError("Data must be a Track or TrackGroup.")
@@ -33,20 +35,10 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
 
     selfcal = []
 
-    for track in group:
+    for track in tracks:
         if not os.path.exists(track.image+"_selfcal0"):
-            tclean(vis=track.ms, spw=track.spw, field=track.science, \
-                    imagename=track.image+"_selfcal0", specmode='mfs', \
-                    nterms=1, niter=track.niter, gain=0.1, nsigma=3., \
-                    imsize=track.imsize, cell=track.cell, stokes='I', \
-                    deconvolver='hogbom', gridder='standard', \
-                    weighting='briggs', robust=2, interactive=False, \
-                    pbcor=False, usemask=track.mask, \
-                    sidelobethreshold=track.sidelobethreshold, \
-                    noisethreshold=track.noisethreshold, \
-                    lownoisethreshold=track.lownoisethreshold, \
-                    minbeamfrac=track.minbeamfrac, fastnoise=False, \
-                    verbose=True, pblimit=-0.2)
+            image_continuum(track, robust=2, nsigma=3., fits=False, \
+                    savemodel=False, suffix="_selfcal0")
 
         snr = imstat(imagename=track.image+"_selfcal0.image")["max"] / \
                 (1.4826 * imstat(imagename=track.image+"_selfcal0.residual")\
@@ -69,18 +61,8 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
     if numpy.any(numpy.array(selfcal) > 0):
         # Create an initial model.
 
-        tclean(vis=[track.ms for track in group], spw=[track.spw for track in \
-                group], field=[track.science for track in group], \
-                imagename=combined.image+"_selfcal0", specmode='mfs', nterms=1,\
-                niter=combined.niter, gain=0.1, nsigma=nsigma0, \
-                imsize=combined.imsize, cell=combined.cell, stokes='I', \
-                deconvolver='hogbom', gridder='standard', weighting='briggs', \
-                robust=0.5, interactive=False, pbcor=False, usemask=track.mask,\
-                sidelobethreshold=combined.sidelobethreshold, \
-                noisethreshold=combined.noisethreshold, \
-                lownoisethreshold=combined.lownoisethreshold, \
-                minbeamfrac=combined.minbeamfrac, savemodel="modelcolumn", \
-                fastnoise=False, verbose=True, pblimit=-0.2)
+        image_continuum(combined, robust=0.5, nsigma=nsigma0, fits=False, \
+                savemodel=True, suffix="_selfcal0")
 
         # Check whether a model was actually calculated, or whether the model 
         # image is empty.
@@ -88,40 +70,11 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
         model_empty = imstat(imagename=combined.image+\
                 "_selfcal0.model")["max"] == 0
 
-        # Re-run to make sure the model was saved.
-
-        if not model_empty:
-            tclean(vis=[track.ms for track in group], spw=[track.spw for track \
-                    in group], field=[track.science for track in group], \
-                    imagename=combined.image+"_selfcal0", specmode='mfs', \
-                    nterms=1, niter=0, gain=0.1, nsigma=nsigma0, \
-                    imsize=combined.imsize, cell=combined.cell, stokes='I', \
-                    deconvolver='hogbom', gridder='standard', \
-                    weighting='briggs', robust=0.5, interactive=False, \
-                    pbcor=False, usemask=track.mask, \
-                    sidelobethreshold=combined.sidelobethreshold, \
-                    noisethreshold=combined.noisethreshold, \
-                    lownoisethreshold=combined.lownoisethreshold, \
-                    minbeamfrac=combined.minbeamfrac, savemodel="modelcolumn", \
-                    calcres=False, calcpsf=False, fastnoise=False, \
-                    verbose=True, pblimit=-0.2)
-
         # Re-run to clean down to a lower level, without adding to the model.
 
         if nsigma0 > 5:
-            tclean(vis=[track.ms for track in group], spw=[track.spw for track \
-                    in group], field=[track.science for track in group], \
-                    imagename=combined.image+"_selfcal0", specmode='mfs', \
-                    nterms=1, niter=combined.niter, gain=0.1, nsigma=5., \
-                    imsize=combined.imsize, cell=combined.cell, stokes='I', \
-                    deconvolver='hogbom', gridder='standard', \
-                    weighting='briggs', robust=0.5, interactive=False, \
-                    pbcor=False, usemask=track.mask, \
-                    sidelobethreshold=combined.sidelobethreshold, \
-                    noisethreshold=combined.noisethreshold, \
-                    lownoisethreshold=combined.lownoisethreshold, \
-                    minbeamfrac=combined.minbeamfrac, savemodel="none", \
-                    fastnoise=False, verbose=True, pblimit=-0.2)
+            image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
+                    savemodel=False, suffix="_selfcal0")
 
         # Self-calibration parameters.
 
@@ -132,7 +85,7 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
         # Do the self-calibration.
 
         for i in range(max(selfcal)):
-            for j, track in enumerate(group):
+            for j, track in enumerate(tracks):
                 # If this track doesn't have high enough S/N, don't 
                 # self-calibrate.
 
@@ -236,58 +189,15 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
 
             # Re-image the data before the next self-calibration iteration 
 
-            tclean(vis=[track.ms for track in group], \
-                    spw=[track.spw for track in group],\
-                    field=[track.science for track in group], \
-                    imagename=combined.image+"_selfcal"+str(i+1), \
-                    specmode='mfs', nterms=1, niter=niter[i], gain=0.1, \
-                    nsigma=nsigma[i], imsize=combined.imsize, \
-                    cell=combined.cell, stokes='I', deconvolver='hogbom', \
-                    gridder='standard', weighting='briggs', robust=0.5, \
-                    interactive=False, pbcor=False, usemask=track.mask,\
-                    sidelobethreshold=combined.sidelobethreshold, \
-                    noisethreshold=combined.noisethreshold, \
-                    lownoisethreshold=combined.lownoisethreshold, \
-                    minbeamfrac=combined.minbeamfrac, savemodel="modelcolumn", \
-                    fastnoise=False, verbose=True, pblimit=-0.2)
-
-            # Re-run to be certain that a model was calculated.
-
-            tclean(vis=[track.ms for track in group], \
-                    spw=[track.spw for track in group],\
-                    field=[track.science for track in group], \
-                    imagename=combined.image+"_selfcal"+str(i+1), \
-                    specmode='mfs', nterms=1, niter=0, gain=0.1, \
-                    nsigma=nsigma[i], imsize=combined.imsize, \
-                    cell=combined.cell, stokes='I', deconvolver='hogbom', \
-                    gridder='standard', weighting='briggs', \
-                    robust=0.5, interactive=False, pbcor=False, \
-                    usemask=track.mask, \
-                    sidelobethreshold=combined.sidelobethreshold, \
-                    noisethreshold=combined.noisethreshold, \
-                    lownoisethreshold=combined.lownoisethreshold, \
-                    minbeamfrac=combined.minbeamfrac, savemodel="modelcolumn", \
-                    calcres=False, calcpsf=False, fastnoise=False, \
-                    verbose=True, pblimit=-0.2)
+            image_continuum(combined, robust=0.5, nsigma=nsigma[i], fits=False,\
+                    savemodel=True, suffix="_selfcal"+str(i+1))
 
             # Re-run one last time to clean down to 5 sigma, for best 
             # comparison with previous iterations.
 
             if nsigma[i] > 5:
-                tclean(vis=[track.ms for track in group], \
-                        spw=[track.spw for track in group],\
-                        field=[track.science for track in group], \
-                        imagename=combined.image+"_selfcal"+str(i+1), \
-                        specmode='mfs', nterms=1, niter=niter[i], gain=0.1, \
-                        nsigma=5., imsize=combined.imsize, cell=combined.cell, \
-                        stokes='I', deconvolver='hogbom', gridder='standard', \
-                        weighting='briggs', robust=0.5, interactive=False, \
-                        pbcor=False, usemask=track.mask, \
-                        sidelobethreshold=combined.sidelobethreshold, \
-                        noisethreshold=combined.noisethreshold, \
-                        lownoisethreshold=combined.lownoisethreshold, \
-                        minbeamfrac=combined.minbeamfrac, savemodel="none", \
-                        fastnoise=False, verbose=True, pblimit=-0.2)
+                image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
+                        savemodel=False, suffix="_selfcal"+str(i+1))
 
     # Clean up any files we don't want anymore.
 

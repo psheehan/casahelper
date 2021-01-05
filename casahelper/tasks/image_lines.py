@@ -1,7 +1,8 @@
 # Image the spectral line data.
 
 from casatasks import tclean
-from ..utils import get_line_info
+from ..utils import get_line_info, Track, TrackGroup
+import os
 
 def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
         width='0.5km/s', nchan=41, outframe='LSRK', nsigma=3.0, fits=False):
@@ -41,7 +42,7 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
             tclean(vis=[track.contsub for track in group], spw=[track.spw for \
                     track in group], field=[track.science for track in group], \
                     imagename=combined.image.replace(track.name,line)\
-                    +"_robust{0:3.1f}".format(robust), specmode='cube', \
+                    +"_robust{0:3.1f}".format(robust_value), specmode='cube', \
                     start=start, width=width, nchan=nchan, \
                     restfreq=str(lines[line])+"GHz", outframe=outframe, \
                     nterms=1, niter=int(10*combined.niter), gain=0.1, \
@@ -59,9 +60,9 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
 
             if fits:
                 exportfits(imagename=combined.image.replace(track.name,\
-                        line)+"_robust{0:3.1f}.image".format(robust), \
+                        line)+"_robust{0:3.1f}.image".format(robust_value), \
                         fitsimage=combined.image.replace(track.name,line)+\
-                        "_robust{0:3.1f}.fits".format(robust))
+                        "_robust{0:3.1f}.fits".format(robust_value))
 
     # Clean up any files we don't want anymore.
 

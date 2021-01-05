@@ -5,7 +5,7 @@ from casatasks import split
 import casatools
 import os
 
-def split_objects(data, outdir="", data="cont", clobber=False, corr="XX,YY", \
+def split_objects(data, outdir="", name="cont", clobber=False, corr="XX,YY", \
         datacolumn="corrected"):
     # Check whether multiple tracks were provided.
 
@@ -41,16 +41,16 @@ def split_objects(data, outdir="", data="cont", clobber=False, corr="XX,YY", \
             # Check if the output directory exists. If not, create it. If the
             # split off MS file already exists, delete it.
 
-            if not os.path.exists(outdir+"/"+obj+"/"+data):
-                os.system("mkdir -p "+outdir+"/"+obj+"/"+data)
+            if not os.path.exists(outdir+"/"+obj+"/"+name):
+                os.system("mkdir -p "+outdir+"/"+obj+"/"+name)
             else:
-                if os.path.exists(outdir+"/"+obj+"/"+data+"/"+obj+"_"+\
+                if os.path.exists(outdir+"/"+obj+"/"+name+"/"+obj+"_"+\
                         track.ms):
                     if clobber:
-                        os.system("rm -r "+outdir+"/"+obj+"/"+data+"/"+obj+"_"+\
+                        os.system("rm -r "+outdir+"/"+obj+"/"+name+"/"+obj+"_"+\
                                 track.ms+"*")
                     else:
-                        raise Warning("Output file "+outdir+"/"+obj+"/"+data+\
+                        raise Warning("Output file "+outdir+"/"+obj+"/"+name+\
                                 "/"+obj+"_"+track.ms+" exists and clobber="
                                 "False. Skipping.")
 
@@ -63,7 +63,7 @@ def split_objects(data, outdir="", data="cont", clobber=False, corr="XX,YY", \
 
             split(vis=track.ms, datacolumn=datacolumn, spw=spw, field=str(i), \
                     correlation=corr, intent="OBSERVE_TARGET#ON_SOURCE", \
-                    outputvis=outdir+"/"+obj+"/"+data+"/"+obj+"_"+track.ms)
+                    outputvis=outdir+"/"+obj+"/"+name+"/"+obj+"_"+track.ms)
 
     # Close the MS file that was grabbed.
 

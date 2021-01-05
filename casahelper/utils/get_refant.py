@@ -8,6 +8,7 @@ def get_refant(vis):
      # Get the antenna names and offsets.
 
      msmd = casatools.msmetadata()
+     tb = casatools.table()
 
      msmd.open(vis)
      names = msmd.antennanames()
