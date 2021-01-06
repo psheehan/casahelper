@@ -65,7 +65,7 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
         if fits:
             exportfits(imagename=combined.image+suffix.format(robust_value)+\
                     ".image", fitsimage=combined.image+suffix.format(\
-                    robust_value)+".image")
+                    robust_value)+".fits")
 
     # Clean up any files we don't want anymore.
 
