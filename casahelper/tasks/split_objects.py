@@ -1,12 +1,13 @@
 # Split off data for individual science targets from a calibrated MS file.
 
-from ..utils import Track, TrackGroup
+from ..utils import Track, TrackGroup, get_spwsforband
 from casatasks import split
 import casatools
+import numpy
 import os
 
-def split_objects(data, outdir="", name="cont", clobber=False, corr="XX,YY", \
-        datacolumn="corrected"):
+def split_objects(data, outdir="", band="33GHz", clobber=False, corr="XX,YY", \
+        datacolumn="corrected", intent="*OBSERVE_TARGET*"):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -33,7 +34,7 @@ def split_objects(data, outdir="", name="cont", clobber=False, corr="XX,YY", \
 
         # Split off the science data.
 
-        for i in msmd.fieldsforintent('OBSERVE_TARGET#ON_SOURCE'):
+        for i in msmd.fieldsforintent(intent):
             # Get the object name.
 
             obj = msmd.fieldnames()[i].replace(" ","")
@@ -41,33 +42,31 @@ def split_objects(data, outdir="", name="cont", clobber=False, corr="XX,YY", \
             # Check if the output directory exists. If not, create it. If the
             # split off MS file already exists, delete it.
 
-            if not os.path.exists(outdir+"/"+obj+"/"+name):
-                os.system("mkdir -p "+outdir+"/"+obj+"/"+name)
+            if not os.path.exists(outdir+"/"+obj+"/"+band):
+                os.system("mkdir -p "+outdir+"/"+obj+"/"+band)
             else:
-                if os.path.exists(outdir+"/"+obj+"/"+name+"/"+obj+"_"+\
+                if os.path.exists(outdir+"/"+obj+"/"+band+"/"+obj+"_"+\
                         track.ms):
                     if clobber:
-                        os.system("rm -r "+outdir+"/"+obj+"/"+name+"/"+obj+"_"+\
+                        os.system("rm -r "+outdir+"/"+obj+"/"+band+"/"+obj+"_"+\
                                 track.ms+"*")
                     else:
-                        raise Warning("Output file "+outdir+"/"+obj+"/"+name+\
+                        raise Warning("Output file "+outdir+"/"+obj+"/"+band+\
                                 "/"+obj+"_"+track.ms+" exists and clobber="
                                 "False. Skipping.")
 
             # Now split off the relevant data.
 
-            spw = ','.join(numpy.intersect1d(\
-                    msmd.spwsforintent('OBSERVE_TARGET#ON_SOURCE'), \
-                    numpy.concatenate((msmd.tdmspws(), msmd.fdmspws()))).\
+            spw = ','.join(get_spwsforband(track, band=band, intent=intent).\
                     astype(str))
 
             split(vis=track.ms, datacolumn=datacolumn, spw=spw, field=str(i), \
-                    correlation=corr, intent="OBSERVE_TARGET#ON_SOURCE", \
-                    outputvis=outdir+"/"+obj+"/"+name+"/"+obj+"_"+track.ms)
+                    correlation=corr, intent=intent, outputvis=outdir+"/"+obj+\
+                    "/"+band+"/"+obj+"_"+track.ms)
 
-    # Close the MS file that was grabbed.
+        # Close the MS file that was grabbed.
 
-    msmd.done()
+        msmd.done()
 
     # Clean up any files we don't want anymore.
 

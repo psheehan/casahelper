@@ -5,9 +5,10 @@ class Track:
     def __init__(self, trackname, spw='', refant='0', science='', name='cont', 
             cell="0.1arcsec", imsize=600, mask='', niter=100, selfcal=[], 
             spwmap=[], sidelobethreshold=3.0, noisethreshold=5.0,
-            minbeamfrac=0.3, lownoisethreshold=1.5):
+            minbeamfrac=0.3, lownoisethreshold=1.5, asdm=None):
         self.ms = trackname+'.ms'
         self.contsub = trackname+'.ms.contsub'
+        self.asdm = asdm
 
         self.selfcal = selfcal
         self.selfcal_base = trackname+'.selfcal'
