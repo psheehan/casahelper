@@ -19,4 +19,5 @@ if os.path.exists(casahelper.__path__[0]+"/recipes/"+script+".py"):
 else:
     print("""{0:s}: No such recipe. Please choose from the following recipes that are currently available:
 
-        image_and_self_calibrate""".format(script))
+        image_and_self_calibrate
+        split_science_data""".format(script))

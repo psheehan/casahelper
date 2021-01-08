@@ -12,12 +12,8 @@ def split_objects(data, outdir="", band="33GHz", clobber=False, corr="XX,YY", \
 
     if type(data) == Track:
         tracks = [data]
-        combine = False
-        combined = data
     elif type(data) == TrackGroup:
         tracks = data.tracks
-        combine = True
-        combined = data
     else:
         raise ValueError("Data must be a Track or TrackGroup.")
 
