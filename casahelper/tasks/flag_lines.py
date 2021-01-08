@@ -1,6 +1,8 @@
 from ..utils import get_line_info, Track, TrackGroup
-from casatasks import flagdata
+from casatasks import flagdata, flagmanager
 import casatools
+import numpy
+import os
 
 # Flag lines in the FDM specral windows.
 

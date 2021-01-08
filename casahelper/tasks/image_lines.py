@@ -1,6 +1,6 @@
 # Image the spectral line data.
 
-from casatasks import tclean
+from casatasks import tclean, exportfits
 from ..utils import get_line_info, Track, TrackGroup
 import os
 
@@ -39,17 +39,17 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
 
     for line in lines:
         for robust_value in robust:
-            tclean(vis=[track.contsub for track in group], spw=[track.spw for \
-                    track in group], field=[track.science for track in group], \
-                    imagename=combined.image.replace(track.name,line)\
-                    +"_robust{0:3.1f}".format(robust_value), specmode='cube', \
-                    start=start, width=width, nchan=nchan, \
+            tclean(vis=[track.contsub for track in tracks], spw=[track.spw for \
+                    track in tracks], field=[track.science for track in \
+                    tracks], imagename=combined.image.replace(combined.name,\
+                    line)+"_robust{0:3.1f}".format(robust_value), \
+                    specmode='cube', start=start, width=width, nchan=nchan, \
                     restfreq=str(lines[line])+"GHz", outframe=outframe, \
                     nterms=1, niter=int(10*combined.niter), gain=0.1, \
                     nsigma=nsigma, imsize=combined.imsize, cell=combined.cell, \
                     stokes='I', deconvolver='hogbom', gridder='standard', \
                     weighting='briggs', robust=robust_value, \
-                    interactive=False, pbcor=False, usemask=track.mask, \
+                    interactive=False, pbcor=False, usemask=combined.mask, \
                     sidelobethreshold=combined.sidelobethreshold, \
                     noisethreshold=combined.noisethreshold, \
                     lownoisethreshold=combined.lownoisethreshold, \
@@ -59,9 +59,9 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
             # Export the relevant images to fits files.
 
             if fits:
-                exportfits(imagename=combined.image.replace(track.name,\
+                exportfits(imagename=combined.image.replace(combined.name,\
                         line)+"_robust{0:3.1f}.image".format(robust_value), \
-                        fitsimage=combined.image.replace(track.name,line)+\
+                        fitsimage=combined.image.replace(combined.name,line)+\
                         "_robust{0:3.1f}.fits".format(robust_value))
 
     # Clean up any files we don't want anymore.

@@ -3,6 +3,8 @@
 from ..utils import get_line_info, Track, TrackGroup
 from casatasks import uvcontsub
 import casatools
+import numpy
+import os
 
 def sub_continuum(data, lines, vmin=-20.0, vmax=20.0):
     # Check whether multiple tracks were provided.

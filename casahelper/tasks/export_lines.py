@@ -84,8 +84,8 @@ def export_lines(data, lines, combined=None, time=True, timebin="30s", \
 
     if combine:
         for line in lines:
-            concat(vis=[track.vis.replace(track.name,line) for track in group],\
-                    concatvis=combined.vis.replace(track.name,line))
+            concat(vis=[track.vis.replace(track.name,line) for track in \
+                    tracks], concatvis=combined.vis.replace(track.name,line))
 
     # Clean up any files we don't want anymore.
 
