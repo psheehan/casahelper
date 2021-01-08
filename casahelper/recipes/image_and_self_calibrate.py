@@ -21,12 +21,12 @@ tracks = []
 for filename in data:
     tracks.append(Track(filename, refant=get_refant(filename), science='0', \
             spw='', niter=500, **image_advice(filename, fieldofview="30arcsec",\
-            mask='auto-multithresh', array="ALMA-auto"))
+            mask='auto-multithresh', array="ALMA-auto")))
 
 # And the info for the combined tracks.
 
 combined = TrackGroup('04287+1801', tracks, niter=5000, \
-        **image_advice(mask='auto-multithresh', array="ALMA-SB")
+        **image_advice(mask='auto-multithresh', array="ALMA-SB"))
 
 # The list of lines in the dataset.
 
