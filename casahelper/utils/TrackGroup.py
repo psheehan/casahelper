@@ -1,8 +1,10 @@
 # Define which combinations of fields and spectral windows are used for 
 # various things.
 
+import numpy
+
 class TrackGroup:
-    def __init__(self, trackname, tracks, name='cont', cell=None, \
+    def __init__(self, trackname, tracks, band=None, cell=None, \
             imsize=None, mask='', niter=100, sidelobethreshold=3.0, \
             noisethreshold=5.0, minbeamfrac=0.3, lownoisethreshold=1.5):
         self.ms = trackname+'.ms'
@@ -10,9 +12,16 @@ class TrackGroup:
 
         self.tracks = tracks
 
-        self.name = name
-        self.vis = trackname+"_"+self.name+".vis"
-        self.image = trackname+"_"+name
+        if band == None:
+            bands = numpy.unique([track.band for track in tracks])
+            if bands.size > 1:
+                raise RuntimeError("All tracks provided to TrackGroup must have"
+                        "the same band.")
+            band = bands[0]
+        self.band = band
+
+        self.vis = trackname+"_"+self.band+".vis"
+        self.image = trackname+"_"+band
         self.fits = self.image+".fits"
         self.residual = self.image+".residual.fits"
 

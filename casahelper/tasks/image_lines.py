@@ -41,7 +41,7 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
         for robust_value in robust:
             tclean(vis=[track.contsub for track in tracks], spw=[track.spw for \
                     track in tracks], field=[track.science for track in \
-                    tracks], imagename=combined.image.replace(combined.name,\
+                    tracks], imagename=combined.image.replace(combined.band,\
                     line)+"_robust{0:3.1f}".format(robust_value), \
                     specmode='cube', start=start, width=width, nchan=nchan, \
                     restfreq=str(lines[line])+"GHz", outframe=outframe, \
@@ -59,9 +59,9 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
             # Export the relevant images to fits files.
 
             if fits:
-                exportfits(imagename=combined.image.replace(combined.name,\
+                exportfits(imagename=combined.image.replace(combined.band,\
                         line)+"_robust{0:3.1f}.image".format(robust_value), \
-                        fitsimage=combined.image.replace(combined.name,line)+\
+                        fitsimage=combined.image.replace(combined.band,line)+\
                         "_robust{0:3.1f}.fits".format(robust_value))
 
     # Clean up any files we don't want anymore.

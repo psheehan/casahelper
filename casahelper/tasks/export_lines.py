@@ -41,7 +41,7 @@ def export_lines(data, lines, combined=None, time=True, timebin="30s", \
     for track in tracks:
         for line in lines:
             # Check whether the averaged data file already exists.
-            if not os.path.exists(track.vis.replace(track.name,line)):
+            if not os.path.exists(track.vis.replace(track.band,line)):
                 # Pick out the relevant SPWs for this line.
 
                 msmd.open(track.contsub)
@@ -73,7 +73,7 @@ def export_lines(data, lines, combined=None, time=True, timebin="30s", \
                 # Now do the mstransform call.
 
                 mstransform(vis=track.contsub, outputvis=track.vis.\
-                        replace(track.name, line), spw=spws, timeaverage=time, \
+                        replace(track.band, line), spw=spws, timeaverage=time, \
                         timebin=timebin, mode=mode, start=start, width=width, \
                         nchan=nchan, restfreq=str(lines[line])+'GHz', \
                         outframe=outframe, interpolation='linear', \
@@ -84,8 +84,8 @@ def export_lines(data, lines, combined=None, time=True, timebin="30s", \
 
     if combine:
         for line in lines:
-            concat(vis=[track.vis.replace(track.name,line) for track in \
-                    tracks], concatvis=combined.vis.replace(track.name,line))
+            concat(vis=[track.vis.replace(track.band,line) for track in \
+                    tracks], concatvis=combined.vis.replace(track.band,line))
 
     # Clean up any files we don't want anymore.
 

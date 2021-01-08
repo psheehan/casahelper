@@ -1,16 +1,13 @@
-from .Track import Track
 import casatools 
 import numpy
 
 def get_bands(track, intent="*OBSERVE_TARGET*"):
     # Check that the value provided for track is appropriate.
 
-    if type(track) == Track:
-        filename = track.ms
-    elif type(track) == str:
+    if type(track) == str:
         filename = track
     else:
-        raise ValueError("Data must be a Track or TrackGroup.")
+        raise ValueError("Data must be a string.")
 
     # Create instances of the tools we'll need.
 

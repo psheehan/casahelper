@@ -1,7 +1,7 @@
 from casahelper.tasks import reset_ms, flag_lines, self_calibrate, \
         image_continuum, export_continuum, sub_continuum, image_lines, \
         export_lines, clean_last
-from casahelper.utils import Track, TrackGroup, get_refant
+from casahelper.utils import Track, TrackGroup, get_refant, image_advice
 from casatasks import flagmanager, flagdata
 import glob
 import os
@@ -19,20 +19,14 @@ data = glob.glob("*.ms")
 tracks = []
 
 for filename in data:
-    image_name = filename.split(".ms")[0]
-    print(image_name)
-
-    tracks.append(Track(image_name, refant=get_refant(filename), science='0', \
-            spw='', name="345GHz", cell='0.03arcsec', imsize=1024, niter=500, \
-            sidelobethreshold=3.0, noisethreshold=5.0, minbeamfrac=0.3, \
-            lownoisethreshold=1.5, mask='auto-multithresh', selfcal=[], \
-            spwmap=[]))
+    tracks.append(Track(filename, refant=get_refant(filename), science='0', \
+            spw='', niter=500, **image_advice(filename, fieldofview="30arcsec",\
+            mask='auto-multithresh', array="ALMA-auto"))
 
 # And the info for the combined tracks.
 
-combined = TrackGroup('04287+1801', tracks, name='345GHz', \
-        niter=5000, sidelobethreshold=3.0, noisethreshold=5.0, \
-        lownoisethreshold=1.5, minbeamfrac=0.3, mask='auto-multithresh')
+combined = TrackGroup('04287+1801', tracks, niter=5000, \
+        **image_advice(mask='auto-multithresh', array="ALMA-SB")
 
 # The list of lines in the dataset.
 
