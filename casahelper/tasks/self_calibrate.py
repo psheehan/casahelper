@@ -1,4 +1,4 @@
-from casatasks import tclean, imstat, gaincal, applycal
+from casatasks import tclean, imstat, gaincal, applycal, flagmanager
 from ..utils import plotcal, Track, TrackGroup
 from .image_continuum import image_continuum
 import casatools
