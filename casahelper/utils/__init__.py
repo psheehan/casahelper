@@ -6,3 +6,4 @@ from .get_line_info import get_line_info
 from .get_bands import get_bands
 from .get_spwsforband import get_spwsforband
 from .image_advice import image_advice
+from .check_alma_array import check_alma_array
