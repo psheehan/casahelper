@@ -8,9 +8,9 @@ import os
 # Create an image of each individual dataset and determine whether to 
 # self-calibrate that track.
 
-def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
-        minsnr = [5.0,5.0,5.0,5.0,5.0], gaintype=['T','T','T','T','T'], \
-        calmode=['p','p','p','ap','ap'], \
+def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
+        solint=['inf','30s','15s','inf','30s'], minsnr = [5.0,5.0,5.0,5.0,5.0],\
+        gaintype=['T','T','T','T','T'], calmode=['p','p','p','ap','ap'], \
         combine=['all','sideband','sideband','baseband','baseband'], \
         niter=[5000,5000,5000,5000,5000], nsigma=[5.,5.,3.,3.,3.]):
 
@@ -45,14 +45,11 @@ def self_calibrate(data, nsigma0=5.0, solint=['inf','30s','15s','inf','30s'], \
                 ["medabsdevmed"])
         print(snr)
 
-        if snr > 120:
-            selfcal.append(4)
-        elif snr > 80:
-            selfcal.append(3)
-        elif snr > 40:
-            selfcal.append(2)
-        else:
-            selfcal.append(1)
+        for i, threshold in enumerate(snr_thresholds):
+            if snr > threshold:
+                nselfcal = i+1
+
+        selfcal.append(nselfcal)
 
     print(selfcal)
 
