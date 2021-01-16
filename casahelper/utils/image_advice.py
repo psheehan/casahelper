@@ -5,17 +5,20 @@ from .get_spwsforband import get_spwsforband
 from .get_bands import get_bands
 import casatools
 import numpy
+import sympy
 
 def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
         array="ALMA-auto", usepercentile=80):
     # Check that the value provided for track is appropriate.
 
     if type(track) == Track:
-        filename = track.ms
+        filenames = [track.ms]
     elif type(track) == str:
-        filename = track
+        filenames = [track]
+    elif type(track) == list:
+        filenames = [t.ms if type(t) == Track else t for t in track]
     else:
-        filename = None
+        filenames = None
 
     # Create an instance of the imager tool.
 
@@ -28,22 +31,32 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
     # Get the imager advice on cells and npix.
 
-    if filename != None:
-        # Get the baselines from the dataset.
+    if filenames != None:
+        # Loop through the files and get baselines and frequencies.
 
-        ms.open(filename)
-        ms.selectinit(0)
-        baselines = ms.getdata(items=['uvdist'])['uvdist']
-        ms.close()
+        baselines, freqs, widths = [], [], []
+        for filename in filenames:
+            # Get the baselines from the dataset.
 
-        # Get the frequencies and average to get the mean frequency.
+            ms.open(filename)
+            ms.selectinit(0)
+            baselines += [ms.getdata(items=['uvdist'])['uvdist']]
+            ms.close()
 
-        spws = get_spwsforband(filename, band=get_bands(filename)[0])
+            # Get the frequencies and average to get the mean frequency.
 
-        msmd.open(filename)
-        freqs = numpy.concatenate([msmd.chanfreqs(spw) for spw in spws])
-        widths = numpy.concatenate([msmd.chanwidths(spw) for spw in spws])
-        msmd.close()
+            spws = get_spwsforband(filename, band=get_bands(filename)[0])
+
+            msmd.open(filename)
+            freqs += [msmd.chanfreqs(spw) for spw in spws]
+            widths += [msmd.chanwidths(spw) for spw in spws]
+            msmd.close()
+
+        baselines = numpy.concatenate(baselines)
+        freqs = numpy.concatenate(freqs)
+        widths = numpy.concatenate(widths)
+
+        # Average to get the mean frequency.
 
         mean_freq = (freqs * widths).sum() / widths.sum()
 
@@ -62,8 +75,23 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
         cell = beam / 2
 
         advice["cell"] = str(cell/5)+"arcsec"
-        advice["imsize"] = max(64, int(float(fieldofview.split("a")[0])/ \
-                (cell) / 10 + 1)*10)*5
+
+        # Now use the cell size to calculate the image size.
+
+        imsize = max(64, int(float(fieldofview.split("a")[0])/(cell)))*5
+
+        # If odd, add one.
+
+        if imsize % 2 == 1:
+            imsize += 1
+
+        # Check the prime factorization to make sure this is an efficient
+        # image size. If not, augment by 2 to make sure it stays even.
+
+        while max(sympy.primefactors(imsize)) > 7:
+            imsize += 2
+
+        advice["imsize"] = imsize
 
     # Add the mask.
 
@@ -75,7 +103,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
         # If we've asked for automatic characterization.
 
         if array == "ALMA-auto":
-            if filename == None:
+            if filenames == None:
                 raise RuntimeError("For auto selecting of auto-multithresh "
                         "parameters, a filename must be provided.")
             else:

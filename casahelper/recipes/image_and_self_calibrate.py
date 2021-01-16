@@ -26,7 +26,8 @@ for filename in data:
 # And the info for the combined tracks.
 
 combined = TrackGroup('04287+1801', tracks, niter=5000, \
-        **image_advice(mask='auto-multithresh', array="ALMA-SB"))
+        **image_advice(tracks, fieldofview="30arcsec", \
+        mask='auto-multithresh', array="ALMA-SB"))
 
 # The list of lines in the dataset.
 
