@@ -45,6 +45,7 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
                 ["medabsdevmed"])
         print(snr)
 
+        nselfcal = 0
         for i, threshold in enumerate(snr_thresholds):
             if snr > threshold:
                 nselfcal = i+1
