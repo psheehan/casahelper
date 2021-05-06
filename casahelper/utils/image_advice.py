@@ -8,7 +8,7 @@ import numpy
 import sympy
 
 def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
-        array="ALMA-auto", usepercentile=80):
+        array="ALMA-auto", usepercentile=80, usebeam=None):
     # Check that the value provided for track is appropriate.
 
     if type(track) == Track:
@@ -24,6 +24,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
     ms = casatools.ms()
     msmd = casatools.msmetadata()
+    tb = casatools.table()
 
     # Create a dictionary to put the advice.
 
@@ -38,8 +39,12 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
         for filename in filenames:
             # Get the baselines from the dataset.
 
+            tb.open(filename)
+            spw_col = tb.getcol('DATA_DESC_ID')
+            tb.close()
+
             ms.open(filename)
-            ms.selectinit(0)
+            ms.selectinit(spw_col[0])
             baselines += [ms.getdata(items=['uvdist'])['uvdist']]
             ms.close()
 
@@ -70,11 +75,21 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
         beam = 0.574 / l80 / 4.8481e-6
 
+        if usebeam != None:
+            beam = usebeam
+
         # Use the beam size to calculate the appropriate cell size.
 
         cell = beam / 2
 
         advice["cell"] = str(cell/5)+"arcsec"
+
+        # If field of view is not directly specified, use the size of the
+        # of the primary beam to estimate the appropriate size.
+
+        if fieldofview == "auto":
+            if array == "VLA":
+                fieldofview = str(45./(mean_freq/1e9) * 1.5 * 60.)+"arcsec"
 
         # Now use the cell size to calculate the image size.
 
