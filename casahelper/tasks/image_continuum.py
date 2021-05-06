@@ -3,7 +3,7 @@ from casatasks import tclean, exportfits, imstat
 import os
 
 def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
-        savemodel=False, suffix="_robust{0:3.1f}"):
+        savemodel=False, suffix="_robust{0:3.1f}", uvtaper=[]):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -37,7 +37,7 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
                 noisethreshold=combined.noisethreshold, \
                 lownoisethreshold=combined.lownoisethreshold, \
                 minbeamfrac=combined.minbeamfrac, fastnoise=False, \
-                verbose=True, pblimit=-0.2)
+                verbose=True, pblimit=-0.2, uvtaper=uvtaper)
 
         if savemodel:
             model_empty = imstat(imagename=combined.image+suffix.\
@@ -58,7 +58,8 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
                         lownoisethreshold=combined.lownoisethreshold, \
                         minbeamfrac=combined.minbeamfrac, \
                         savemodel="modelcolumn", calcres=False, calcpsf=False, \
-                        fastnoise=False, verbose=True, pblimit=-0.2)
+                        fastnoise=False, verbose=True, pblimit=-0.2, \
+                        uvtaper=uvtaper)
 
         # Export the relevant images to fits files if requested.
 
