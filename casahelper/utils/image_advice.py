@@ -54,7 +54,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
             msmd.open(filename)
             freqs += [msmd.chanfreqs(spw) for spw in spws]
-            widths += [msmd.chanwidths(spw) for spw in spws]
+            widths += [numpy.abs(msmd.chanwidths(spw)) for spw in spws]
             msmd.close()
 
         baselines = numpy.concatenate(baselines)
