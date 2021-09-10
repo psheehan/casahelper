@@ -12,7 +12,8 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
         solint=['inf','30s','15s','inf','30s'], minsnr = [5.0,5.0,5.0,5.0,5.0],\
         gaintype=['T','T','T','T','T'], calmode=['p','p','p','ap','ap'], \
         combine=['all','sideband','sideband','baseband','baseband'], \
-        niter=[5000,5000,5000,5000,5000], nsigma=[5.,5.,3.,3.,3.]):
+        niter=[5000,5000,5000,5000,5000], nsigma=[5.,5.,3.,3.,3.], \
+        nterms=1):
 
     # Create instances of the needed tools.
 
@@ -30,19 +31,26 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
     else:
         raise ValueError("Data must be a Track or TrackGroup.")
 
+    # Check whether we asked for multiple Taylor terms.
+
+    if nterms >= 2:
+        terms_suffix = ".tt0"
+    else:
+        terms_suffix = ""
+
     # First create an image of each track in the group to get the number of 
     # rounds of self calibration to try.
 
     selfcal = []
 
     for track in tracks:
-        if not os.path.exists(track.image+"_selfcal0"):
+        if not os.path.exists(track.image+"_selfcal0.image"+terms_suffix):
             image_continuum(track, robust=2, nsigma=3., fits=False, \
-                    savemodel=False, suffix="_selfcal0")
+                    savemodel=False, suffix="_selfcal0", nterms=nterms)
 
-        snr = imstat(imagename=track.image+"_selfcal0.image")["max"] / \
-                (1.4826 * imstat(imagename=track.image+"_selfcal0.residual")\
-                ["medabsdevmed"])
+        snr = imstat(imagename=track.image+"_selfcal0.image"+\
+                terms_suffix)["max"] / (1.4826 * imstat(imagename=track.image+\
+                "_selfcal0.residual"+terms_suffix)["medabsdevmed"])
         print(snr)
 
         nselfcal = 0
@@ -60,19 +68,19 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
         # Create an initial model.
 
         image_continuum(combined, robust=0.5, nsigma=nsigma0, fits=False, \
-                savemodel=True, suffix="_selfcal0")
+                savemodel=True, suffix="_selfcal0", nterms=nterms)
 
         # Check whether a model was actually calculated, or whether the model 
         # image is empty.
 
         model_empty = imstat(imagename=combined.image+\
-                "_selfcal0.model")["max"] == 0
+                "_selfcal0.model"+terms_suffix)["max"] == 0
 
         # Re-run to clean down to a lower level, without adding to the model.
 
         if nsigma0 > 5:
             image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
-                    savemodel=False, suffix="_selfcal0")
+                    savemodel=False, suffix="_selfcal0", nterms=nterms)
 
         # Self-calibration parameters.
 
@@ -188,14 +196,15 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
             # Re-image the data before the next self-calibration iteration 
 
             image_continuum(combined, robust=0.5, nsigma=nsigma[i], fits=False,\
-                    savemodel=True, suffix="_selfcal"+str(i+1))
+                    savemodel=True, suffix="_selfcal"+str(i+1), nterms=nterms)
 
             # Re-run one last time to clean down to 5 sigma, for best 
             # comparison with previous iterations.
 
             if nsigma[i] > 5:
                 image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
-                        savemodel=False, suffix="_selfcal"+str(i+1))
+                        savemodel=False, suffix="_selfcal"+str(i+1), \
+                        nterms=nterms)
 
     # Clean up any files we don't want anymore.
 

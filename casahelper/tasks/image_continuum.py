@@ -3,7 +3,7 @@ from casatasks import tclean, exportfits, imstat
 import os
 
 def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
-        savemodel=False, suffix="_robust{0:3.1f}", uvtaper=[]):
+        savemodel=False, suffix="_robust{0:3.1f}", uvtaper=[], nterms=1):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -22,13 +22,20 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
     if type(robust) != list:
         robust = [robust]
 
+    # Check whether we asked for multiple Taylor terms.
+
+    if nterms >= 2:
+        terms_suffix = ".tt0"
+    else:
+        terms_suffix = ""
+
     # Now loop through the requested robust values and image.
 
     for robust_value in robust:
         tclean(vis=[track.ms for track in tracks], spw=[track.spw for track in \
                 tracks], field=[track.science for track in tracks], \
                 imagename=combined.image+suffix.format(robust_value), \
-                specmode='mfs', nterms=1, niter=combined.niter, gain=0.1, \
+                specmode='mfs', nterms=nterms, niter=combined.niter, gain=0.1, \
                 nsigma=nsigma, imsize=combined.imsize, cell=combined.cell, \
                 stokes='I', deconvolver='hogbom', gridder='standard', \
                 weighting='briggs', robust=robust_value, interactive=False, \
@@ -41,13 +48,13 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
 
         if savemodel:
             model_empty = imstat(imagename=combined.image+suffix.\
-                    format(robust_value)+".model")["max"] == 0
+                    format(robust_value)+".model"+terms_suffix)["max"] == 0
 
             if not model_empty:
                 tclean(vis=[track.ms for track in tracks], spw=[track.spw for \
                         track in tracks], field=[track.science for track in \
                         tracks], imagename=combined.image+suffix.format(\
-                        robust_value), specmode='mfs', nterms=1, niter=0, \
+                        robust_value), specmode='mfs', nterms=nterms, niter=0, \
                         gain=0.1, nsigma=nsigma, imsize=combined.imsize, \
                         cell=combined.cell, stokes='I', deconvolver='hogbom', \
                         gridder='standard', weighting='briggs', \
@@ -65,8 +72,8 @@ def image_continuum(data, robust=[-1,0.5,2], nsigma=3.0, fits=False, \
 
         if fits:
             exportfits(imagename=combined.image+suffix.format(robust_value)+\
-                    ".image", fitsimage=combined.image+suffix.format(\
-                    robust_value)+".fits")
+                    ".image"+terms_suffix, fitsimage=combined.image+\
+                    suffix.format(robust_value)+".fits")
 
     # Clean up any files we don't want anymore.
 
