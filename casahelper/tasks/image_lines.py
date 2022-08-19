@@ -1,11 +1,12 @@
 # Image the spectral line data.
 
 from casatasks import tclean, exportfits
-from ..utils import get_line_info, Track, TrackGroup
+from ..utils import get_line_info, Track, TrackGroup, get_spwsforline
 import os
 
 def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
-        width='0.5km/s', nchan=41, outframe='LSRK', nsigma=3.0, fits=False):
+        width='0.5km/s', nchan=41, outframe='LSRK', nsigma=3.0, fits=False, \
+        parallel=False):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -39,7 +40,15 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
 
     for line in lines:
         for robust_value in robust:
-            tclean(vis=[track.contsub for track in tracks], spw=[track.spw for \
+            print("#############################")
+            print("")
+            print("Imaging ",line," with robust parameter ",robust_value)
+            print("Line frequency = "+str(lines[line])+"GHz")
+            print("spw = ",[get_spwsforline(track, line) for track in tracks])
+            print("")
+            print("#############################")
+            tclean(vis=[track.contsub for track in tracks], \
+                    spw=[get_spwsforline(track,line) for \
                     track in tracks], field=[track.science for track in \
                     tracks], imagename=combined.image.replace(combined.band,\
                     line)+"_robust{0:3.1f}".format(robust_value), \
@@ -54,7 +63,7 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
                     noisethreshold=combined.noisethreshold, \
                     lownoisethreshold=combined.lownoisethreshold, \
                     minbeamfrac=combined.minbeamfrac, fastnoise=False, \
-                    verbose=True, pblimit=-0.2)
+                    verbose=True, pblimit=-0.2, parallel=parallel)
 
             # Export the relevant images to fits files.
 
