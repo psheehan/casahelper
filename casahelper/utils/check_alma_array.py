@@ -51,7 +51,9 @@ def check_alma_array(track):
         array = "ACA"
     elif b75 < 300:
         array = "SB"
-    else:
+    elif b75 < 2600:
         array = "LB"
+    else:
+        array = "VLB"
 
     return array

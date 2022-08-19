@@ -103,7 +103,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
         # Check the prime factorization to make sure this is an efficient
         # image size. If not, augment by 2 to make sure it stays even.
 
-        while max(sympy.primefactors(imsize)) > 7:
+        while max(sympy.primefactors(imsize)) >= 7:
             imsize += 2
 
         advice["imsize"] = imsize
@@ -130,13 +130,20 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
                     array = "ALMA-ACA"
                 elif b75 < 300:
                     array = "ALMA-SB"
-                else:
+                elif b75 < 2600:
                     array = "ALMA-LB"
+                else:
+                    array = "ALMA-VLB"
 
         # Now, get the auto-masking parameters.
 
         if array == "ALMA-LB":
             advice["sidelobethreshold"] = 3.0
+            advice["noisethreshold"] = 5.0
+            advice["lownoisethreshold"] = 1.5
+            advice["minbeamfrac"] = 0.3
+        elif array == "ALMA-VLB":
+            advice["sidelobethreshold"] = 1.5
             advice["noisethreshold"] = 5.0
             advice["lownoisethreshold"] = 1.5
             advice["minbeamfrac"] = 0.3
@@ -150,6 +157,11 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
             advice["noisethreshold"] = 5.0
             advice["lownoisethreshold"] = 2.0
             advice["minbeamfrac"] = 0.1
+        elif array == "ALMA-VLB":
+            advice["sidelobethreshold"] = 1.5
+            advice["noisethreshold"] = 5.0
+            advice["lownoisethreshold"] = 1.5
+            advice["minbeamfrac"] = 0.3
         elif array == "VLA":
             advice["sidelobethreshold"] = 1.5
             advice["noisethreshold"] = 5.0
