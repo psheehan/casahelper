@@ -1,3 +1,4 @@
+from casatasks import rmtables
 import os
 
 def clean_last():
@@ -6,15 +7,21 @@ def clean_last():
     for fileext in ["*.selfcal*",\
             "*.fits",\
             "*.flux*",\
-            "*.image",\
-            "*.model",\
-            "*.psf",\
-            "*.residual",\
+            "*.image*",\
+            "*.model*",\
+            "*.fitmodel*",\
+            "*.psf*",\
+            "*.residual*",\
+            "*.gridwt",\
             "*.vis",\
             "*.mask",\
-            "*.pb",\
+            "*.pb*",\
             "*.pbcor",\
-            "*.sumwt",\
+            "*.sumwt*",\
             "*.png",\
+            "*.alpha*",\
+            "*.beta*",\
             "*.contsub"]:
-        os.system("rm -r "+fileext)
+        rmtables(fileext)
+
+    os.system("rm -r *.fits")
