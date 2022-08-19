@@ -13,7 +13,8 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
         gaintype=['T','T','T','T','T'], calmode=['p','p','p','ap','ap'], \
         combine=['all','sideband','sideband','baseband','baseband'], \
         niter=[5000,5000,5000,5000,5000], nsigma=[5.,5.,3.,3.,3.], \
-        nterms=1):
+        nterms=1, gain=0.1, scales=[0], cyclefactor=1, cycleniter=-1, \
+        parallel=False):
 
     # Create instances of the needed tools.
 
@@ -33,7 +34,7 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
 
     # Check whether we asked for multiple Taylor terms.
 
-    if nterms >= 2:
+    if nterms >= 2 or len(scales) > 1:
         terms_suffix = ".tt0"
     else:
         terms_suffix = ""
@@ -44,13 +45,15 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
     selfcal = []
 
     for track in tracks:
-        if not os.path.exists(track.image+"_selfcal0.image"+terms_suffix):
+        if not os.path.exists(track.image+"_pre-selfcal.image"+terms_suffix):
             image_continuum(track, robust=2, nsigma=3., fits=False, \
-                    savemodel=False, suffix="_selfcal0", nterms=nterms)
+                    savemodel=False, suffix="_pre-selfcal", nterms=nterms, \
+                    gain=gain, scales=scales, parallel=parallel, \
+                    cyclefactor=cyclefactor, cycleniter=cycleniter)
 
-        snr = imstat(imagename=track.image+"_selfcal0.image"+\
+        snr = imstat(imagename=track.image+"_pre-selfcal.image"+\
                 terms_suffix)["max"] / (1.4826 * imstat(imagename=track.image+\
-                "_selfcal0.residual"+terms_suffix)["medabsdevmed"])
+                "_pre-selfcal.residual"+terms_suffix)["medabsdevmed"])
         print(snr)
 
         nselfcal = 0
@@ -68,7 +71,9 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
         # Create an initial model.
 
         image_continuum(combined, robust=0.5, nsigma=nsigma0, fits=False, \
-                savemodel=True, suffix="_selfcal0", nterms=nterms)
+                savemodel=True, suffix="_selfcal0", nterms=nterms, \
+                gain=gain, scales=scales, parallel=parallel, \
+                cyclefactor=cyclefactor, cycleniter=cycleniter)
 
         # Check whether a model was actually calculated, or whether the model 
         # image is empty.
@@ -80,7 +85,9 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
 
         if nsigma0 > 5:
             image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
-                    savemodel=False, suffix="_selfcal0", nterms=nterms)
+                    savemodel=False, suffix="_selfcal0", nterms=nterms, \
+                    gain=gain, scales=scales, parallel=parallel, 
+                    cyclefactor=cyclefactor, cycleniter=cycleniter)
 
         # Self-calibration parameters.
 
@@ -196,15 +203,19 @@ def self_calibrate(data, nsigma0=5.0, snr_thresholds=[0,40,80,120,160], \
             # Re-image the data before the next self-calibration iteration 
 
             image_continuum(combined, robust=0.5, nsigma=nsigma[i], fits=False,\
-                    savemodel=True, suffix="_selfcal"+str(i+1), nterms=nterms)
+                    savemodel=True, suffix="_selfcal"+str(i+1), nterms=nterms, \
+                    gain=gain, scales=scales, parallel=parallel, \
+                    cyclefactor=cyclefactor, cycleniter=cycleniter)
 
             # Re-run one last time to clean down to 5 sigma, for best 
             # comparison with previous iterations.
 
-            if nsigma[i] > 5:
-                image_continuum(combined, robust=0.5, nsigma=5.0, fits=False, \
+            if nsigma[i] > 3.:
+                image_continuum(combined, robust=0.5, nsigma=3.0, fits=False, \
                         savemodel=False, suffix="_selfcal"+str(i+1), \
-                        nterms=nterms)
+                        gain=gain, nterms=nterms, scales=scales, \
+                        cyclefactor=cyclefactor, cycleniter=cycleniter, \
+                        parallel=parallel)
 
     # Clean up any files we don't want anymore.
 
