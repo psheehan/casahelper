@@ -27,13 +27,23 @@ def export_continuum(data, chan=True, nchannels=4, time=True, timebin="30s", \
         if not os.path.exists(track.vis):
             msmd.open(track.ms)
 
+            # Get the proper list of spws.
+
+            if track.spw == '':
+                spw = ','.join(msmd.spwsforfield(int(track.science)).\
+                        astype(str))
+            else:
+                spw = track.spw
+
+            # Do the averaging of each track individually.
+
             nbins = []
             for i in msmd.spwsforfield(int(track.science)):
                 nbins += [int(msmd.chanfreqs(i).size / nchannels)]
 
             msmd.done()
 
-            mstransform(vis=track.ms, outputvis=track.vis, spw=track.spw, \
+            mstransform(vis=track.ms, outputvis=track.vis, spw=spw, \
                     chanaverage=chan, chanbin=nbins, timeaverage=time, \
                     timebin=timebin, datacolumn=datacolumn)
 
