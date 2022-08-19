@@ -66,7 +66,12 @@ def sub_continuum(data, lines, vmin=-20.0, vmax=20.0):
 
                 spwstrings.append(spwstring)
 
-            fitspw.append(str(spw)+":"+';'.join(spwstrings))
+            if len(spwstrings) > 0:
+                fitspw.append(str(spw)+":"+';'.join(spwstrings))
+            else:
+                # If no lines found in this SPW, flag a few edge channels so 
+                # that excludechans=True works without combine="spw"
+                fitspw.append(str(spw)+":0~1")
 
         spw = ",".join(msmd.fdmspws().astype(str))
 
