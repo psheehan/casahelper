@@ -82,7 +82,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
         cell = beam / 2
 
-        advice["cell"] = str(cell/5)+"arcsec"
+        advice["cell"] = str(cell/2.5)+"arcsec"
 
         # If field of view is not directly specified, use the size of the
         # of the primary beam to estimate the appropriate size.
@@ -93,7 +93,7 @@ def image_advice(track=None, fieldofview="30arcsec", mask="auto-multithresh", \
 
         # Now use the cell size to calculate the image size.
 
-        imsize = max(64, int(float(fieldofview.split("a")[0])/(cell)))*5
+        imsize = max(64, int(float(fieldofview.split("a")[0])/(cell/2.5)))
 
         # If odd, add one.
 
