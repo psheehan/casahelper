@@ -13,6 +13,11 @@ def get_spwsforline(track, line):
     else:
         raise ValueError("track must be a Track or string.")
 
+    # If the line is "SPW*", simply return the relevant spw.
+
+    if "SPW" in line:
+        return line.split("SPW")[1]
+
     # Check whether a list of lines was provided.
 
     if type(line) == str:

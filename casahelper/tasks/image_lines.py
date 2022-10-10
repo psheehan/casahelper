@@ -43,7 +43,8 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
             print("#############################")
             print("")
             print("Imaging ",line," with robust parameter ",robust_value)
-            print("Line frequency = "+str(lines[line])+"GHz")
+            if "SPW" not in line:
+                print("Line frequency = "+str(lines[line])+"GHz")
             print("spw = ",[get_spwsforline(track, line) for track in tracks])
             print("")
             print("#############################")
@@ -53,7 +54,8 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
                     tracks], imagename=combined.image.replace(combined.band,\
                     line)+"_robust{0:3.1f}".format(robust_value), \
                     specmode='cube', start=start, width=width, nchan=nchan, \
-                    restfreq=str(lines[line])+"GHz", outframe=outframe, \
+                    restfreq=str(lines[line])+"GHz" if "SPW" not in line \
+                    else '', outframe=outframe, \
                     nterms=1, niter=int(10*combined.niter), gain=0.1, \
                     nsigma=nsigma, imsize=combined.imsize, cell=combined.cell, \
                     stokes='I', deconvolver='hogbom', gridder='standard', \

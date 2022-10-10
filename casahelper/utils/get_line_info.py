@@ -19,6 +19,9 @@ def get_line_info(lines):
 
     line_data = {}
     for line in lines:
-        line_data[line] = lines_dictionary[line]
+        if "SPW" in line:
+            line_data[line] = 0.
+        else:
+            line_data[line] = lines_dictionary[line]
 
     return line_data
