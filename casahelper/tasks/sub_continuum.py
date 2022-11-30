@@ -41,8 +41,15 @@ def sub_continuum(data, lines, vmin=-20.0, vmax=20.0):
 
         # Check each spectral window for relevant lines that need to be
         # excluded.
+        spws = []
         fitspw = []
         for spw in msmd.fdmspws():
+            # Skip spws that are phantoms...
+            if len(msmd.intentsforspw(spw)) == 0:
+                continue
+
+            spws.append(spw)
+
             # Get the frequencies in this spectral window.
             freqs = ms.cvelfreqs(spwids=[spw], fieldids=[0], mode="channel", \
                     outframe="LSRK")
@@ -73,7 +80,7 @@ def sub_continuum(data, lines, vmin=-20.0, vmax=20.0):
                 # that excludechans=True works without combine="spw"
                 fitspw.append(str(spw)+":0~1")
 
-        spw = ",".join(msmd.fdmspws().astype(str))
+        spw = ",".join(numpy.array(spws).astype(str))
 
         msmd.close()
         ms.close()

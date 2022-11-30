@@ -7,16 +7,27 @@ def get_spwsforline(track, line):
     # Check that the value provided for track is appropriate.
 
     if type(track) == Track:
-        filename = track.ms
+        filename = track.contsub
     elif type(track) == str:
         filename = track
     else:
         raise ValueError("track must be a Track or string.")
 
+    # Create instances of the tools we'll need.
+
+    msmd = casatools.msmetadata()
+    ms = casatools.ms()
+
     # If the line is "SPW*", simply return the relevant spw.
 
     if "SPW" in line:
-        return line.split("SPW")[1]
+        msmd.open(filename)
+        if int(line[3:]) in msmd.fdmspws():
+            msmd.close()
+            return line.split("SPW")[1]
+        else:
+            msmd.close()
+            return ''
 
     # Check whether a list of lines was provided.
 
@@ -24,11 +35,6 @@ def get_spwsforline(track, line):
         lines = get_line_info([line])
     else:
         raise ValueError("Lines must be a string")
-
-    # Create instances of the tools we'll need.
-
-    msmd = casatools.msmetadata()
-    ms = casatools.ms()
 
     # Open the track with each tool.
     
@@ -40,6 +46,10 @@ def get_spwsforline(track, line):
     spws = []
 
     for spw in msmd.fdmspws():
+        if len(msmd.intentsforspw(spw)) == 0:
+            continue
+        print(spw)
+
         # Get the channel frequencies in the LSRK frame, where we typically
         # know the velocities.
 

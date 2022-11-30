@@ -2,11 +2,13 @@
 
 from casatasks import tclean, exportfits
 from ..utils import get_line_info, Track, TrackGroup, get_spwsforline
+import numpy
+import glob
 import os
 
 def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
         width='0.5km/s', nchan=41, outframe='LSRK', nsigma=3.0, fits=False, \
-        parallel=False):
+        parallel=False, savespace=False):
     # Check whether multiple tracks were provided.
 
     if type(data) == Track:
@@ -39,6 +41,15 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
     # Loop through the lines and robust values and make an image.
 
     for line in lines:
+        if numpy.all(numpy.array([get_spwsforline(track, line) for \
+                track in tracks]) == ''):
+            print("#############################")
+            print("")
+            print("Skipping ",line," because no valid SPWs were found.")
+            print("")
+            print("#############################")
+            continue
+
         for robust_value in robust:
             print("#############################")
             print("")
@@ -48,6 +59,13 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
             print("spw = ",[get_spwsforline(track, line) for track in tracks])
             print("")
             print("#############################")
+
+            # Make sure previous instances are deleted.
+            if len(glob.glob(combined.image.replace(combined.band,\
+                    line)+"_robust{0:3.1f}".format(robust_value)+".*")) > 0:
+                os.system("rm -rf "+combined.image.replace(combined.band,\
+                    line)+"_robust{0:3.1f}".format(robust_value)+".*")
+
             tclean(vis=[track.contsub for track in tracks], \
                     spw=[get_spwsforline(track,line) for \
                     track in tracks], field=[track.science for track in \
@@ -74,6 +92,15 @@ def image_lines(data, lines, combined=None, robust=[-1,0.5,2], start='-20km/s',\
                         line)+"_robust{0:3.1f}.image".format(robust_value), \
                         fitsimage=combined.image.replace(combined.band,line)+\
                         "_robust{0:3.1f}.fits".format(robust_value))
+
+            if savespace:
+                ext_list = [".mask",".model",".pb",".psf",".sumwt"]
+                if fits:
+                    ext_list += [".image"]
+
+                for ext in ext_list:
+                    os.system("rm -rf "+combined.image.replace(combined.band,\
+                            line)+"_robust{0:3.1f}"+ext)
 
     # Clean up any files we don't want anymore.
 

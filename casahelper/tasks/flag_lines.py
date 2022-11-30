@@ -48,6 +48,9 @@ def flag_lines(data, lines, vmin=-20., vmax=20.):
         # Check each FDM spectral window for lines in the line list.
 
         for spw in msmd.fdmspws():
+            if len(msmd.intentsforspw(spw)) == 0:
+                continue
+
             # Get the channel frequencies in the LSRK frame, where we typically
             # know the velocities.
 
